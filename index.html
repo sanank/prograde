@@ -975,10 +975,10 @@ function TopNav({ user, profile, route, topicId, theme, setTheme }) {
             {idle && <span style={{color:'var(--warn)',fontSize:10}}>idle</span>}
           </div>
         )}
+        <ThemeToggle theme={theme} setTheme={setTheme}/>
         <div className="avatar">
           {(profile?.name || (user?.email ? user.email.split('@')[0] : 'U')).slice(0,2).toUpperCase()}
         </div>
-
       </div>
     </nav>
   );
@@ -1082,11 +1082,12 @@ function Sidebar({ profile, page, setPage }) {
 }
 
 /* ── DASHBOARD PAGE ─────────────────────────────────────────── */
-function DashboardPage({ user, profile }) {
+function DashboardPage({ user, profile, setPage }) {
   const [stats, setStats] = useState({ topics: 0, done: 0, sessions: 0, minutes: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!user?.id) return;
     const load = async () => {
       const [{ count: done }, { data: sessions }] = await Promise.all([
         supabase.from('topic_progress').select('*', {count:'exact',head:true})
@@ -1131,7 +1132,7 @@ function DashboardPage({ user, profile }) {
             { icon: '⬡', title: 'My Course', sub: 'View phase roadmap', page: 'phases' },
             { icon: '⏱', title: 'Time Log',  sub: 'Review study sessions', page: 'sessions' },
           ].map((c,i) => (
-            <div key={i} className="admin-card" style={{cursor:'default'}}>
+            <div key={i} className="admin-card" onClick={() => setPage(c.page)}>
               <div className="admin-card-icon">{c.icon}</div>
               <div className="admin-card-title">{c.title}</div>
               <div className="admin-card-sub">{c.sub}</div>
@@ -1152,22 +1153,52 @@ function PhasesPage({ user, profile, setPage, setActiveTopic }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // profile=undefined means auth still resolving; profile=null means logged out; profile={} means loaded
+    if (profile === undefined) return;
+    if (!profile?.course_id) { setLoading(false); return; }
+
     const load = async () => {
-      if (!profile?.course_id) { setLoading(false); return; }
-      const [{ data: courseData }, { data: phasesData }, { data: progressData }] = await Promise.all([
-        supabase.from('courses').select('*').eq('id', profile.course_id).single(),
-        supabase.from('phases').select(`*, resources(*, topics(*))`).eq('course_id', profile.course_id).order('order'),
-        supabase.from('phase_progress').select('*').eq('user_id', user.id),
-      ]);
-      setCourse(courseData);
-      setPhases(phasesData || []);
-      const prog = {};
-      (progressData||[]).forEach(p => prog[p.phase_id] = p);
-      setProgress(prog);
-      setLoading(false);
+      setLoading(true);
+      try {
+        // Fetch course
+        const { data: courseData, error: ce } = await supabase
+          .from('courses').select('*').eq('id', profile.course_id).single();
+        if (ce) { console.error('course error:', ce); }
+
+        // Fetch phases with nested resources and topics via explicit joins
+        const { data: phasesData, error: pe } = await supabase
+          .from('phases')
+          .select(`*, resources:resources(id, title, description, "order",
+            topics:topics(id, title, level, "order", prereq_topic_id, ai_generated))`)
+          .eq('course_id', profile.course_id)
+          .order('"order"');
+        if (pe) { console.error('phases error:', pe); }
+
+        // Fetch phase progress for this user
+        const { data: progressData, error: pre } = await supabase
+          .from('phase_progress').select('*').eq('user_id', user.id);
+        if (pre) { console.error('progress error:', pre); }
+
+        setCourse(courseData || null);
+        const sorted = (phasesData || []).map(ph => ({
+          ...ph,
+          resources: [...(ph.resources || [])].sort((a, b) => a.order - b.order).map(r => ({
+            ...r,
+            topics: [...(r.topics || [])].sort((a, b) => a.order - b.order)
+          }))
+        }));
+        setPhases(sorted);
+        const prog = {};
+        (progressData || []).forEach(p => prog[p.phase_id] = p);
+        setProgress(prog);
+      } catch (err) {
+        console.error('PhasesPage load error:', err);
+      } finally {
+        setLoading(false);
+      }
     };
     load();
-  }, [profile?.course_id]);
+  }, [profile?.course_id, user.id]);
 
   const statusColor = s => ({
     completed: 'var(--status-completed)',
@@ -1178,7 +1209,11 @@ function PhasesPage({ user, profile, setPage, setActiveTopic }) {
 
   const statusLabel = s => ({ completed:'Completed', in_progress:'In Progress', unlocked:'Unlocked', locked:'Locked' })[s] || 'Locked';
 
-  if (loading) return <div className="main-content"><div className="loading-screen"><div className="spinner"/></div></div>;
+  if (loading || profile === undefined) return (
+    <div className="main-content">
+      <div className="loading-screen"><div className="spinner" style={{margin:'0 auto'}}/></div>
+    </div>
+  );
 
   if (!profile?.course_id) return (
     <div className="main-content">
@@ -1564,7 +1599,7 @@ function ToastContainer({ toasts }) {
 /* ── ROOT APP ───────────────────────────────────────────────── */
 function App() {
   const [session, setSession] = useState(undefined);
-  const [profile, setProfile] = useState(null);
+  const [profile, setProfile] = useState(undefined);
   const [page, setPage] = useState('dashboard');
   const [activeTopic, setActiveTopic] = useState(null);
   const { toasts, show: toast } = useToast();
@@ -1589,9 +1624,13 @@ function App() {
   // Load profile
   useEffect(() => {
     if (!session?.user) { setProfile(null); return; }
+    setProfile(undefined); // loading state
     supabase.from('user_profiles').select('*').eq('id', session.user.id).single()
-      .then(({ data }) => setProfile(data));
-  }, [session]);
+      .then(({ data, error }) => {
+        if (error) console.error('profile load error:', error);
+        setProfile(data || null);
+      });
+  }, [session?.user?.id]);
 
   if (session === undefined) return (
     <div className="loading-screen">
@@ -1609,7 +1648,8 @@ function App() {
   }[page] || page;
 
   const renderPage = () => {
-    if (page === 'dashboard')        return <DashboardPage user={session.user} profile={profile}/>;
+    if (profile === null) return <div className="loading-screen" style={{flex:1}}><div className="spinner"/></div>;
+    if (page === 'dashboard')        return <DashboardPage user={session.user} profile={profile} setPage={setPage}/>;
     if (page === 'phases')           return <PhasesPage user={session.user} profile={profile} setPage={setPage} setActiveTopic={setActiveTopic}/>;
     if (page === 'sessions')         return <SessionsPage user={session.user}/>;
     if (page === 'topic')            return <TopicPage topicId={activeTopic} setPage={setPage}/>;
