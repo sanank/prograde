@@ -1,0 +1,1341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Prograde</title>
+
+<!-- Fonts: JetBrains Mono for code, Inter for UI -->
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+
+<!-- Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+<!-- React + Babel -->
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<!-- Config (git-ignored, must exist locally) -->
+<script src="config.js"></script>
+
+<style>
+/* ── PROGRADE DESIGN TOKENS ─────────────────────────────────── */
+:root {
+  /* Base — VS Code Dark+ inspired */
+  --bg-0:       #0d0d0f;   /* deepest bg — body */
+  --bg-1:       #141416;   /* sidebar bg */
+  --bg-2:       #1a1a1e;   /* panel bg */
+  --bg-3:       #222228;   /* card bg */
+  --bg-4:       #2a2a32;   /* hover / input bg */
+  --bg-5:       #32323c;   /* active / selected bg */
+
+  /* Borders */
+  --border-0:   rgba(255,255,255,.06);
+  --border-1:   rgba(255,255,255,.10);
+  --border-2:   rgba(255,255,255,.16);
+
+  /* Text */
+  --text-0:     #e8e8f0;   /* primary */
+  --text-1:     #a0a0b8;   /* secondary */
+  --text-2:     #606078;   /* muted / placeholder */
+  --text-inv:   #0d0d0f;   /* text on bright bg */
+
+  /* Accent — Prograde teal-green (VS Code intellisense-ish) */
+  --accent:     #4af0b0;
+  --accent-dim: #1a3d30;
+  --accent-glow:rgba(74,240,176,.15);
+
+  /* Semantic */
+  --info:       #569cd6;   /* VS Code blue — types */
+  --info-dim:   #1a2d42;
+  --success:    #4ec9b0;   /* VS Code teal — functions */
+  --success-dim:#1a302c;
+  --warn:       #dcdcaa;   /* VS Code yellow — variables */
+  --warn-dim:   #2e2e1a;
+  --error:      #f44747;   /* VS Code red — errors */
+  --error-dim:  #2e1a1a;
+  --purple:     #c586c0;   /* VS Code purple — keywords */
+  --purple-dim: #2a1a2e;
+  --orange:     #ce9178;   /* VS Code orange — strings */
+
+  /* Levels */
+  --level-basic:        #4ec9b0;
+  --level-intermediate: #dcdcaa;
+  --level-advanced:     #c586c0;
+
+  /* Status */
+  --status-locked:      #606078;
+  --status-unlocked:    #569cd6;
+  --status-inprogress:  #dcdcaa;
+  --status-completed:   #4af0b0;
+
+  /* Typography */
+  --font-ui:   'Inter', system-ui, sans-serif;
+  --font-code: 'JetBrains Mono', monospace;
+
+  /* Sizing */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --sidebar-w: 240px;
+  --nav-h:     52px;
+}
+
+/* ── RESET ──────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 14px; scroll-behavior: smooth; }
+body {
+  font-family: var(--font-ui);
+  background: var(--bg-0);
+  color: var(--text-0);
+  min-height: 100vh;
+  overflow-x: hidden;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+button { cursor: pointer; font-family: var(--font-ui); }
+input, textarea, select {
+  font-family: var(--font-ui);
+  background: var(--bg-4);
+  border: 1px solid var(--border-1);
+  color: var(--text-0);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-size: 13px;
+  outline: none;
+  transition: border-color .15s;
+}
+input:focus, textarea:focus, select:focus { border-color: var(--accent); }
+code, .mono { font-family: var(--font-code); }
+
+/* ── SCROLLBAR ──────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-1); }
+::-webkit-scrollbar-thumb { background: var(--bg-5); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-2); }
+
+/* ── LAYOUT ─────────────────────────────────────────────────── */
+#root { display: flex; flex-direction: column; min-height: 100vh; }
+
+/* ── TOPNAV ─────────────────────────────────────────────────── */
+.topnav {
+  height: var(--nav-h);
+  background: var(--bg-1);
+  border-bottom: 1px solid var(--border-0);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.topnav-brand {
+  font-family: var(--font-code);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: -.01em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.topnav-brand .slash { color: var(--text-2); font-weight: 400; }
+.topnav-route {
+  font-family: var(--font-code);
+  font-size: 12px;
+  color: var(--text-2);
+}
+.topnav-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.avatar {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: var(--accent-dim);
+  border: 1.5px solid var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 600; color: var(--accent);
+  font-family: var(--font-code);
+}
+.punch-clock {
+  font-family: var(--font-code);
+  font-size: 12px;
+  color: var(--text-1);
+  background: var(--bg-3);
+  border: 1px solid var(--border-0);
+  border-radius: var(--radius-sm);
+  padding: 4px 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.punch-clock .dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--success);
+  animation: pulse 2s ease-in-out infinite;
+}
+.punch-clock .dot.idle { background: var(--warn); animation: none; }
+.punch-clock .dot.off { background: var(--text-2); animation: none; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+/* ── APP SHELL ──────────────────────────────────────────────── */
+.app-shell {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── SIDEBAR ─────────────────────────────────────────────────── */
+.sidebar {
+  width: var(--sidebar-w);
+  background: var(--bg-1);
+  border-right: 1px solid var(--border-0);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+.sidebar-section { padding: 16px 0 8px; }
+.sidebar-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-2);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  padding: 0 16px 6px;
+  font-family: var(--font-code);
+}
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  font-size: 13px;
+  color: var(--text-1);
+  cursor: pointer;
+  border-left: 2px solid transparent;
+  transition: all .12s;
+  background: none;
+  border-right: none;
+  border-top: none;
+  border-bottom: none;
+  width: 100%;
+  text-align: left;
+}
+.sidebar-item:hover { background: var(--bg-4); color: var(--text-0); }
+.sidebar-item.active { background: var(--accent-glow); color: var(--accent); border-left-color: var(--accent); }
+.sidebar-item .item-icon { width: 16px; text-align: center; font-size: 13px; flex-shrink: 0; }
+.sidebar-item .item-badge {
+  margin-left: auto;
+  font-family: var(--font-code);
+  font-size: 10px;
+  background: var(--bg-5);
+  color: var(--text-2);
+  padding: 1px 6px;
+  border-radius: 99px;
+}
+.sidebar-item.active .item-badge { background: var(--accent-dim); color: var(--accent); }
+
+/* ── MAIN CONTENT ──────────────────────────────────────────── */
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+  background: var(--bg-0);
+}
+
+/* ── PAGE HEADER ────────────────────────────────────────────── */
+.page-header {
+  padding: 28px 28px 20px;
+  border-bottom: 1px solid var(--border-0);
+}
+.page-eyebrow {
+  font-family: var(--font-code);
+  font-size: 11px;
+  color: var(--accent);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.page-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-0);
+  letter-spacing: -.02em;
+}
+.page-sub {
+  font-size: 13px;
+  color: var(--text-1);
+  margin-top: 4px;
+}
+
+/* ── STAT CARDS ─────────────────────────────────────────────── */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px,1fr));
+  gap: 12px;
+  padding: 20px 28px;
+}
+.stat-card {
+  background: var(--bg-2);
+  border: 1px solid var(--border-0);
+  border-radius: var(--radius-md);
+  padding: 16px;
+}
+.stat-value {
+  font-family: var(--font-code);
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.stat-label {
+  font-size: 11px;
+  color: var(--text-2);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+/* ── PHASE MAP ──────────────────────────────────────────────── */
+.phase-map { padding: 0 28px 28px; }
+.phase-map-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-2);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  padding: 20px 0 12px;
+  font-family: var(--font-code);
+}
+.phase-card {
+  background: var(--bg-2);
+  border: 1px solid var(--border-0);
+  border-radius: var(--radius-lg);
+  margin-bottom: 12px;
+  overflow: hidden;
+  transition: border-color .15s;
+}
+.phase-card:hover { border-color: var(--border-1); }
+.phase-card.status-completed { border-left: 3px solid var(--status-completed); }
+.phase-card.status-in_progress { border-left: 3px solid var(--status-inprogress); }
+.phase-card.status-unlocked { border-left: 3px solid var(--status-unlocked); }
+.phase-card.status-locked { border-left: 3px solid var(--status-locked); opacity: .6; }
+.phase-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+  cursor: pointer;
+}
+.phase-num {
+  width: 28px; height: 28px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-4);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-code);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-1);
+  flex-shrink: 0;
+}
+.phase-title-wrap { flex: 1; }
+.phase-name { font-weight: 500; font-size: 14px; }
+.phase-meta { font-size: 12px; color: var(--text-2); margin-top: 1px; }
+.phase-status-badge {
+  font-family: var(--font-code);
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 99px;
+  font-weight: 500;
+}
+.phase-progress-bar {
+  height: 3px;
+  background: var(--bg-4);
+}
+.phase-progress-fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width .4s ease;
+}
+.phase-body { border-top: 1px solid var(--border-0); }
+.phase-topics { padding: 8px; display: flex; flex-direction: column; gap: 4px; }
+.topic-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background .12s;
+  font-size: 13px;
+}
+.topic-row:hover { background: var(--bg-4); }
+.topic-status-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+.topic-title { flex: 1; }
+.topic-level-badge {
+  font-family: var(--font-code);
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+.level-basic        { background: rgba(78,201,176,.12); color: var(--level-basic); }
+.level-intermediate { background: rgba(220,220,170,.12); color: var(--level-intermediate); }
+.level-advanced     { background: rgba(197,134,192,.12); color: var(--level-advanced); }
+
+/* ── BUTTONS ────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  border: none;
+  transition: all .12s;
+  white-space: nowrap;
+}
+.btn-primary { background: var(--accent); color: var(--text-inv); }
+.btn-primary:hover { background: #3dd9a0; }
+.btn-ghost { background: transparent; color: var(--text-1); border: 1px solid var(--border-1); }
+.btn-ghost:hover { background: var(--bg-4); color: var(--text-0); }
+.btn-danger { background: var(--error-dim); color: var(--error); border: 1px solid rgba(244,71,71,.3); }
+.btn-danger:hover { background: rgba(244,71,71,.2); }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+.btn:disabled { opacity: .4; cursor: not-allowed; }
+
+/* ── AUTH PAGE ──────────────────────────────────────────────── */
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-0);
+}
+.auth-card {
+  background: var(--bg-2);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-lg);
+  padding: 36px 40px;
+  width: 100%;
+  max-width: 380px;
+}
+.auth-logo {
+  font-family: var(--font-code);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+.auth-logo .dim { color: var(--text-2); font-weight: 400; }
+.auth-tagline { font-size: 12px; color: var(--text-2); margin-bottom: 28px; }
+.auth-label { font-size: 12px; color: var(--text-1); margin-bottom: 6px; display: block; }
+.auth-input { width: 100%; margin-bottom: 12px; }
+.auth-footer { font-size: 12px; color: var(--text-2); margin-top: 16px; text-align: center; }
+.auth-alert {
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  margin-bottom: 14px;
+}
+.auth-alert.success { background: var(--success-dim); color: var(--success); border: 1px solid rgba(78,201,176,.3); }
+.auth-alert.error   { background: var(--error-dim);   color: var(--error);   border: 1px solid rgba(244,71,71,.3); }
+
+/* ── EMPTY STATE ────────────────────────────────────────────── */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 28px;
+  text-align: center;
+  color: var(--text-2);
+}
+.empty-icon { font-size: 36px; margin-bottom: 16px; opacity: .5; }
+.empty-title { font-size: 15px; font-weight: 500; color: var(--text-1); margin-bottom: 6px; }
+.empty-sub { font-size: 13px; max-width: 320px; line-height: 1.6; }
+
+/* ── ADMIN PANEL ────────────────────────────────────────────── */
+.admin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px,1fr));
+  gap: 12px;
+  padding: 20px 28px;
+}
+.admin-card {
+  background: var(--bg-2);
+  border: 1px solid var(--border-0);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  cursor: pointer;
+  transition: all .15s;
+}
+.admin-card:hover { border-color: var(--accent); background: var(--bg-3); }
+.admin-card-icon { font-size: 20px; margin-bottom: 12px; }
+.admin-card-title { font-weight: 500; font-size: 14px; margin-bottom: 4px; }
+.admin-card-sub { font-size: 12px; color: var(--text-2); line-height: 1.5; }
+
+/* ── TABLE ──────────────────────────────────────────────────── */
+.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.data-table th {
+  text-align: left;
+  padding: 10px 14px;
+  font-size: 11px;
+  color: var(--text-2);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  font-weight: 500;
+  border-bottom: 1px solid var(--border-0);
+  font-family: var(--font-code);
+}
+.data-table td {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--border-0);
+  color: var(--text-1);
+}
+.data-table tr:hover td { background: var(--bg-3); }
+.data-table .mono-cell { font-family: var(--font-code); font-size: 12px; }
+
+/* ── GATE OVERLAY ───────────────────────────────────────────── */
+.gate-overlay {
+  position: fixed; inset: 0;
+  background: rgba(13,13,15,.92);
+  backdrop-filter: blur(6px);
+  z-index: 500;
+  display: flex; align-items: center; justify-content: center;
+}
+.gate-card {
+  background: var(--bg-2);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-lg);
+  padding: 36px 40px;
+  max-width: 480px;
+  width: 90%;
+  text-align: center;
+}
+.gate-icon { font-size: 32px; margin-bottom: 16px; }
+.gate-title { font-size: 18px; font-weight: 600; margin-bottom: 8px; color: var(--text-0); }
+.gate-sub { font-size: 13px; color: var(--text-1); margin-bottom: 24px; line-height: 1.6; }
+.gate-progress {
+  background: var(--bg-4);
+  border-radius: 99px;
+  height: 4px;
+  margin-bottom: 24px;
+  overflow: hidden;
+}
+.gate-progress-fill {
+  height: 100%;
+  background: var(--warn);
+  border-radius: 99px;
+  transition: width .4s;
+}
+
+/* ── LOADING ────────────────────────────────────────────────── */
+.loading-screen {
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 16px;
+}
+.loading-logo { font-family: var(--font-code); font-size: 18px; color: var(--accent); font-weight: 600; }
+.spinner {
+  width: 20px; height: 20px;
+  border: 2px solid var(--border-1);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── TOAST ──────────────────────────────────────────────────── */
+.toast-wrap { position: fixed; bottom: 20px; right: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 8px; }
+.toast {
+  background: var(--bg-3);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  font-size: 13px;
+  max-width: 320px;
+  animation: slideIn .2s ease;
+  display: flex; gap: 10px; align-items: flex-start;
+}
+@keyframes slideIn { from { transform: translateX(120%); opacity:0; } to { transform: translateX(0); opacity:1; } }
+.toast.success { border-left: 3px solid var(--success); }
+.toast.error   { border-left: 3px solid var(--error); }
+.toast.info    { border-left: 3px solid var(--info); }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useCallback, useRef, createContext, useContext } = React;
+
+/* ── CONFIG ─────────────────────────────────────────────────── */
+const CFG = window.PROGRADE_CONFIG || {};
+const supabase = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY);
+
+/* ── CONTEXT ────────────────────────────────────────────────── */
+const AppCtx = createContext(null);
+const useApp = () => useContext(AppCtx);
+
+/* ── TOAST HOOK ─────────────────────────────────────────────── */
+function useToast() {
+  const [toasts, setToasts] = useState([]);
+  const show = useCallback((msg, type='info') => {
+    const id = Date.now();
+    setToasts(t => [...t, { id, msg, type }]);
+    setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 4000);
+  }, []);
+  return { toasts, show };
+}
+
+/* ── PUNCH CLOCK ─────────────────────────────────────────────── */
+function usePunchClock(userId, topicId) {
+  const [sessionId, setSessionId] = useState(null);
+  const [elapsed, setElapsed] = useState(0);
+  const [startTime, setStartTime] = useState(null);
+  const [idle, setIdle] = useState(false);
+  const idleTimer = useRef(null);
+  const IDLE_TIMEOUT = 5 * 60 * 1000; // 5 min
+
+  const resetIdle = useCallback(() => {
+    setIdle(false);
+    clearTimeout(idleTimer.current);
+    idleTimer.current = setTimeout(() => setIdle(true), IDLE_TIMEOUT);
+  }, []);
+
+  useEffect(() => {
+    if (!userId || !topicId) return;
+    // Punch in
+    const punchIn = async () => {
+      const { data } = await supabase.from('sessions').insert({
+        user_id: userId, topic_id: topicId
+      }).select().single();
+      if (data) { setSessionId(data.id); setStartTime(Date.now()); }
+    };
+    punchIn();
+    resetIdle();
+    const events = ['mousemove','keydown','click','scroll'];
+    events.forEach(e => document.addEventListener(e, resetIdle));
+    return () => {
+      events.forEach(e => document.removeEventListener(e, resetIdle));
+      clearTimeout(idleTimer.current);
+    };
+  }, [userId, topicId]);
+
+  useEffect(() => {
+    if (!startTime) return;
+    const t = setInterval(() => setElapsed(Math.floor((Date.now() - startTime) / 1000)), 1000);
+    return () => clearInterval(t);
+  }, [startTime]);
+
+  // Auto punch-out on idle
+  useEffect(() => {
+    if (idle && sessionId) {
+      supabase.from('sessions').update({
+        punched_out_at: new Date().toISOString(),
+        duration_sec: elapsed,
+        stale: true
+      }).eq('id', sessionId);
+      setSessionId(null);
+    }
+  }, [idle]);
+
+  const punchOut = async () => {
+    if (!sessionId) return;
+    await supabase.from('sessions').update({
+      punched_out_at: new Date().toISOString(),
+      duration_sec: elapsed,
+      stale: false
+    }).eq('id', sessionId);
+    setSessionId(null);
+    setElapsed(0);
+  };
+
+  const fmt = s => `${String(Math.floor(s/3600)).padStart(2,'0')}:${String(Math.floor((s%3600)/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+  return { elapsed: fmt(elapsed), idle, active: !!sessionId, punchOut };
+}
+
+/* ── AUTH PAGE ──────────────────────────────────────────────── */
+function AuthPage() {
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState(null); // {type, msg}
+
+  const handleLogin = async e => {
+    e.preventDefault();
+    setLoading(true);
+    setStatus(null);
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: window.location.href,
+      }
+    });
+    setLoading(false);
+    if (error) setStatus({ type: 'error', msg: error.message });
+    else setStatus({ type: 'success', msg: `Magic link sent to ${email}. Check your inbox.` });
+  };
+
+  return (
+    <div className="auth-page">
+      <div className="auth-card">
+        <div className="auth-logo">prograde<span className="dim">.dev</span></div>
+        <div className="auth-tagline">Role-based professional learning platform</div>
+        {status && <div className={`auth-alert ${status.type}`}>{status.msg}</div>}
+        <form onSubmit={handleLogin}>
+          <label className="auth-label">Email address</label>
+          <input
+            className="auth-input"
+            type="email"
+            placeholder="you@company.com"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            required
+          />
+          <button className="btn btn-primary" style={{width:'100%'}} disabled={loading}>
+            {loading ? 'Sending...' : 'Send magic link →'}
+          </button>
+        </form>
+        <div className="auth-footer">No password needed. A login link will be sent to your email.</div>
+      </div>
+    </div>
+  );
+}
+
+/* ── TOPNAV ─────────────────────────────────────────────────── */
+function TopNav({ user, profile, route, topicId }) {
+  const { elapsed, idle, active } = usePunchClock(user?.id, topicId);
+  return (
+    <nav className="topnav">
+      <div className="topnav-brand">
+        prograde<span className="slash"> / </span>
+        <span style={{color:'var(--text-1)',fontWeight:400,fontSize:13}}>{route}</span>
+      </div>
+      <div className="topnav-right">
+        {active && (
+          <div className="punch-clock">
+            <div className={`dot ${idle ? 'idle' : ''}`}/>
+            <span>{elapsed}</span>
+            {idle && <span style={{color:'var(--warn)',fontSize:10}}>idle</span>}
+          </div>
+        )}
+        <div className="avatar">
+          {(profile?.name || user?.email || '?').slice(0,2).toUpperCase()}
+        </div>
+        <button className="btn btn-ghost btn-sm" onClick={() => supabase.auth.signOut()}>Sign out</button>
+      </div>
+    </nav>
+  );
+}
+
+/* ── SIDEBAR ─────────────────────────────────────────────────── */
+function Sidebar({ profile, page, setPage }) {
+  const isAdmin = profile?.role === 'admin';
+  const learnerItems = [
+    { id: 'dashboard', icon: '◈', label: 'Dashboard' },
+    { id: 'phases',    icon: '⬡', label: 'My Course' },
+    { id: 'sessions',  icon: '⏱', label: 'Time Log' },
+  ];
+  const adminItems = [
+    { id: 'admin',         icon: '⚙', label: 'Admin Home' },
+    { id: 'admin-courses', icon: '◉', label: 'Courses' },
+    { id: 'admin-users',   icon: '◎', label: 'Learners' },
+    { id: 'admin-analytics', icon: '▤', label: 'Analytics' },
+  ];
+  return (
+    <aside className="sidebar">
+      <div className="sidebar-section">
+        <div className="sidebar-label">Learner</div>
+        {learnerItems.map(item => (
+          <button key={item.id} className={`sidebar-item ${page===item.id?'active':''}`}
+            onClick={() => setPage(item.id)}>
+            <span className="item-icon">{item.icon}</span>
+            {item.label}
+          </button>
+        ))}
+      </div>
+      {isAdmin && (
+        <div className="sidebar-section" style={{borderTop:'1px solid var(--border-0)'}}>
+          <div className="sidebar-label" style={{color:'var(--warn)'}}>Admin</div>
+          {adminItems.map(item => (
+            <button key={item.id} className={`sidebar-item ${page===item.id?'active':''}`}
+              onClick={() => setPage(item.id)}>
+              <span className="item-icon">{item.icon}</span>
+              {item.label}
+            </button>
+          ))}
+        </div>
+      )}
+      <div style={{marginTop:'auto',padding:'16px',borderTop:'1px solid var(--border-0)'}}>
+        <div style={{fontSize:11,color:'var(--text-2)',fontFamily:'var(--font-code)',marginBottom:4}}>signed in as</div>
+        <div style={{fontSize:12,color:'var(--text-1)',wordBreak:'break-all'}}>{profile?.email}</div>
+        <div style={{marginTop:4}}>
+          <span style={{
+            fontFamily:'var(--font-code)',fontSize:10,padding:'2px 6px',
+            borderRadius:3,background: profile?.role==='admin'?'var(--warn-dim)':'var(--info-dim)',
+            color: profile?.role==='admin'?'var(--warn)':'var(--info)'
+          }}>{profile?.role||'learner'}</span>
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+/* ── DASHBOARD PAGE ─────────────────────────────────────────── */
+function DashboardPage({ user, profile }) {
+  const [stats, setStats] = useState({ topics: 0, done: 0, sessions: 0, minutes: 0 });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      const [{ count: done }, { data: sessions }] = await Promise.all([
+        supabase.from('topic_progress').select('*', {count:'exact',head:true})
+          .eq('user_id', user.id).eq('status','completed'),
+        supabase.from('sessions').select('duration_sec')
+          .eq('user_id', user.id).not('duration_sec','is',null),
+      ]);
+      const minutes = Math.round((sessions||[]).reduce((a,s) => a + (s.duration_sec||0), 0) / 60);
+      setStats({ done: done||0, sessions: (sessions||[]).length, minutes });
+      setLoading(false);
+    };
+    load();
+  }, [user.id]);
+
+  const statColor = (i) => ['var(--accent)','var(--info)','var(--success)','var(--warn)'][i];
+
+  return (
+    <div className="main-content">
+      <div className="page-header">
+        <div className="page-eyebrow">// dashboard</div>
+        <div className="page-title">Welcome back, {profile?.name || 'Learner'}</div>
+        <div className="page-sub">Track your progress, manage your time, stay on course.</div>
+      </div>
+      {loading ? <div style={{padding:40,textAlign:'center'}}><div className="spinner" style={{margin:'0 auto'}}/></div> : (
+        <div className="stat-grid">
+          {[
+            { label: 'Topics Completed', value: stats.done, color: 0 },
+            { label: 'Study Sessions',   value: stats.sessions, color: 1 },
+            { label: 'Minutes Studied',  value: stats.minutes, color: 2 },
+            { label: 'Streak Days',      value: '—', color: 3 },
+          ].map((s,i) => (
+            <div key={i} className="stat-card">
+              <div className="stat-value" style={{color: statColor(s.color)}}>{s.value}</div>
+              <div className="stat-label">{s.label}</div>
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="phase-map">
+        <div className="phase-map-title">Quick links</div>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))',gap:10}}>
+          {[
+            { icon: '⬡', title: 'My Course', sub: 'View phase roadmap', page: 'phases' },
+            { icon: '⏱', title: 'Time Log',  sub: 'Review study sessions', page: 'sessions' },
+          ].map((c,i) => (
+            <div key={i} className="admin-card" style={{cursor:'default'}}>
+              <div className="admin-card-icon">{c.icon}</div>
+              <div className="admin-card-title">{c.title}</div>
+              <div className="admin-card-sub">{c.sub}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── PHASES PAGE ─────────────────────────────────────────────── */
+function PhasesPage({ user, profile, setPage, setActiveTopic }) {
+  const [course, setCourse] = useState(null);
+  const [phases, setPhases] = useState([]);
+  const [progress, setProgress] = useState({});
+  const [expanded, setExpanded] = useState({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      if (!profile?.course_id) { setLoading(false); return; }
+      const [{ data: courseData }, { data: phasesData }, { data: progressData }] = await Promise.all([
+        supabase.from('courses').select('*').eq('id', profile.course_id).single(),
+        supabase.from('phases').select(`*, resources(*, topics(*))`).eq('course_id', profile.course_id).order('order'),
+        supabase.from('phase_progress').select('*').eq('user_id', user.id),
+      ]);
+      setCourse(courseData);
+      setPhases(phasesData || []);
+      const prog = {};
+      (progressData||[]).forEach(p => prog[p.phase_id] = p);
+      setProgress(prog);
+      setLoading(false);
+    };
+    load();
+  }, [profile?.course_id]);
+
+  const statusColor = s => ({
+    completed: 'var(--status-completed)',
+    in_progress: 'var(--status-inprogress)',
+    unlocked: 'var(--status-unlocked)',
+    locked: 'var(--status-locked)'
+  })[s] || 'var(--status-locked)';
+
+  const statusLabel = s => ({ completed:'Completed', in_progress:'In Progress', unlocked:'Unlocked', locked:'Locked' })[s] || 'Locked';
+
+  if (loading) return <div className="main-content"><div className="loading-screen"><div className="spinner"/></div></div>;
+
+  if (!profile?.course_id) return (
+    <div className="main-content">
+      <div className="page-header">
+        <div className="page-eyebrow">// my course</div>
+        <div className="page-title">No course assigned</div>
+        <div className="page-sub">Ask your admin to assign you to a course.</div>
+      </div>
+      <div className="empty-state">
+        <div className="empty-icon">◈</div>
+        <div className="empty-title">You're not enrolled in a course yet</div>
+        <div className="empty-sub">Your admin needs to assign you to a course. Check back soon.</div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="main-content">
+      <div className="page-header">
+        <div className="page-eyebrow">// course · {course?.role_title}</div>
+        <div className="page-title">{course?.title}</div>
+        <div className="page-sub">{course?.description}</div>
+      </div>
+      <div className="phase-map">
+        <div className="phase-map-title">{phases.length} phases</div>
+        {phases.map((phase, idx) => {
+          const prog = progress[phase.id];
+          const status = prog?.status || 'locked';
+          const topics = phase.resources?.flatMap(r => r.topics || []) || [];
+          const isOpen = expanded[phase.id];
+          return (
+            <div key={phase.id} className={`phase-card status-${status}`}>
+              <div className="phase-header" onClick={() => setExpanded(e => ({...e, [phase.id]: !e[phase.id]}))}>
+                <div className="phase-num" style={{color: statusColor(status), background: status==='locked'?'var(--bg-4)':'var(--bg-5)'}}>
+                  {idx+1}
+                </div>
+                <div className="phase-title-wrap">
+                  <div className="phase-name">{phase.title}</div>
+                  <div className="phase-meta">{topics.length} topics · Min pass {phase.min_pass_pct}%</div>
+                </div>
+                <span className="phase-status-badge" style={{background: `${statusColor(status)}18`, color: statusColor(status)}}>
+                  {statusLabel(status)}
+                </span>
+                <span style={{color:'var(--text-2)',marginLeft:8}}>{isOpen ? '▲' : '▼'}</span>
+              </div>
+              <div className="phase-progress-bar">
+                <div className="phase-progress-fill" style={{width: status==='completed'?'100%':status==='in_progress'?'45%':'0%'}}/>
+              </div>
+              {isOpen && (
+                <div className="phase-body">
+                  {phase.resources?.map(resource => (
+                    <div key={resource.id}>
+                      <div style={{padding:'10px 18px 4px',fontSize:11,color:'var(--text-2)',fontFamily:'var(--font-code)',textTransform:'uppercase',letterSpacing:'.08em'}}>
+                        {resource.title}
+                      </div>
+                      <div className="phase-topics">
+                        {(resource.topics||[]).map(topic => (
+                          <div key={topic.id} className="topic-row"
+                            onClick={() => { setActiveTopic(topic.id); setPage('topic'); }}>
+                            <div className="topic-status-dot" style={{background: status==='locked'?'var(--status-locked)':'var(--accent)'}}/>
+                            <span className="topic-title">{topic.title}</span>
+                            <span className={`topic-level-badge level-${topic.level}`}>{topic.level}</span>
+                          </div>
+                        ))}
+                        {(resource.topics||[]).length === 0 && (
+                          <div style={{padding:'8px 10px',fontSize:12,color:'var(--text-2)'}}>No topics yet</div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+        {phases.length === 0 && (
+          <div className="empty-state">
+            <div className="empty-icon">⬡</div>
+            <div className="empty-title">No phases in this course yet</div>
+            <div className="empty-sub">The admin is still building the course. Check back soon.</div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ── SESSIONS PAGE ──────────────────────────────────────────── */
+function SessionsPage({ user }) {
+  const [sessions, setSessions] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    supabase.from('sessions').select('*, topics(title)').eq('user_id', user.id)
+      .order('punched_in_at', { ascending: false }).limit(50)
+      .then(({ data }) => { setSessions(data||[]); setLoading(false); });
+  }, []);
+
+  const fmt = s => s ? `${Math.floor(s/60)}m ${s%60}s` : '—';
+  const fmtDate = d => d ? new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '—';
+
+  return (
+    <div className="main-content">
+      <div className="page-header">
+        <div className="page-eyebrow">// time log</div>
+        <div className="page-title">Study Sessions</div>
+        <div className="page-sub">All tracked study sessions with duration and topic.</div>
+      </div>
+      <div style={{padding:'20px 28px'}}>
+        {loading ? <div className="spinner"/> : (
+          sessions.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-icon">⏱</div>
+              <div className="empty-title">No sessions yet</div>
+              <div className="empty-sub">Start a topic to begin time tracking.</div>
+            </div>
+          ) : (
+            <table className="data-table">
+              <thead><tr><th>Topic</th><th>Punched In</th><th>Duration</th><th>Status</th></tr></thead>
+              <tbody>{sessions.map(s => (
+                <tr key={s.id}>
+                  <td>{s.topics?.title || '—'}</td>
+                  <td className="mono-cell">{fmtDate(s.punched_in_at)}</td>
+                  <td className="mono-cell">{fmt(s.duration_sec)}</td>
+                  <td>
+                    <span style={{
+                      fontFamily:'var(--font-code)',fontSize:10,padding:'2px 6px',borderRadius:3,
+                      background: s.stale?'var(--warn-dim)':'var(--success-dim)',
+                      color: s.stale?'var(--warn)':'var(--success)'
+                    }}>{s.stale?'stale':'complete'}</span>
+                  </td>
+                </tr>
+              ))}</tbody>
+            </table>
+          )
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ── ADMIN HOME ─────────────────────────────────────────────── */
+function AdminHomePage({ setPage }) {
+  const cards = [
+    { icon: '◉', title: 'Courses', sub: 'Create and manage courses, phases, resources, topics', page: 'admin-courses' },
+    { icon: '◎', title: 'Learners', sub: 'Manage users, assign courses, view individual progress', page: 'admin-users' },
+    { icon: '▤', title: 'Analytics', sub: 'Cohort progress, time spent, quiz scores, weak areas', page: 'admin-analytics' },
+  ];
+  return (
+    <div className="main-content">
+      <div className="page-header">
+        <div className="page-eyebrow">// admin</div>
+        <div className="page-title">Admin Panel</div>
+        <div className="page-sub">Configure courses, manage learners, analyse progress.</div>
+      </div>
+      <div className="admin-grid">
+        {cards.map(c => (
+          <div key={c.page} className="admin-card" onClick={() => setPage(c.page)}>
+            <div className="admin-card-icon">{c.icon}</div>
+            <div className="admin-card-title">{c.title}</div>
+            <div className="admin-card-sub">{c.sub}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ── ADMIN COURSES ──────────────────────────────────────────── */
+function AdminCoursesPage({ user, toast }) {
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
+  const [form, setForm] = useState({ title: '', role_title: '', description: '' });
+
+  const load = async () => {
+    const { data } = await supabase.from('courses').select('*, phases(count)').order('created_at', {ascending:false});
+    setCourses(data || []);
+    setLoading(false);
+  };
+  useEffect(() => { load(); }, []);
+
+  const create = async e => {
+    e.preventDefault();
+    const { error } = await supabase.from('courses').insert({ ...form, created_by: user.id });
+    if (error) { toast(error.message, 'error'); return; }
+    toast('Course created', 'success');
+    setCreating(false);
+    setForm({ title:'', role_title:'', description:'' });
+    load();
+  };
+
+  return (
+    <div className="main-content">
+      <div className="page-header" style={{display:'flex',alignItems:'flex-start',gap:16}}>
+        <div style={{flex:1}}>
+          <div className="page-eyebrow">// admin · courses</div>
+          <div className="page-title">Courses</div>
+          <div className="page-sub">Create and configure role-based learning paths.</div>
+        </div>
+        <button className="btn btn-primary" style={{marginTop:20}} onClick={() => setCreating(true)}>+ New course</button>
+      </div>
+
+      {creating && (
+        <div style={{padding:'20px 28px',borderBottom:'1px solid var(--border-0)'}}>
+          <form onSubmit={create} style={{maxWidth:480,display:'flex',flexDirection:'column',gap:10}}>
+            <div style={{fontSize:13,fontWeight:500,marginBottom:4}}>New course</div>
+            <input placeholder="Course title" value={form.title} onChange={e=>setForm(f=>({...f,title:e.target.value}))} required/>
+            <input placeholder="Role title (e.g. Frontend Developer)" value={form.role_title} onChange={e=>setForm(f=>({...f,role_title:e.target.value}))} required/>
+            <textarea placeholder="Description (optional)" rows={2} value={form.description} onChange={e=>setForm(f=>({...f,description:e.target.value}))} style={{resize:'vertical'}}/>
+            <div style={{display:'flex',gap:8}}>
+              <button className="btn btn-primary btn-sm" type="submit">Create</button>
+              <button className="btn btn-ghost btn-sm" type="button" onClick={() => setCreating(false)}>Cancel</button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      <div style={{padding:'20px 28px'}}>
+        {loading ? <div className="spinner"/> : courses.length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-icon">◉</div>
+            <div className="empty-title">No courses yet</div>
+            <div className="empty-sub">Create your first course to get started.</div>
+          </div>
+        ) : (
+          <table className="data-table">
+            <thead><tr><th>Title</th><th>Role</th><th>Phases</th><th>Created</th></tr></thead>
+            <tbody>{courses.map(c => (
+              <tr key={c.id}>
+                <td style={{fontWeight:500}}>{c.title}</td>
+                <td><span style={{fontFamily:'var(--font-code)',fontSize:11,background:'var(--info-dim)',color:'var(--info)',padding:'2px 7px',borderRadius:3}}>{c.role_title}</span></td>
+                <td className="mono-cell">{c.phases?.[0]?.count ?? '0'}</td>
+                <td className="mono-cell" style={{color:'var(--text-2)'}}>{new Date(c.created_at).toLocaleDateString('en-IN')}</td>
+              </tr>
+            ))}</tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ── ADMIN USERS ─────────────────────────────────────────────── */
+function AdminUsersPage({ toast }) {
+  const [users, setUsers] = useState([]);
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const load = async () => {
+    const [{ data: u }, { data: c }] = await Promise.all([
+      supabase.from('user_profiles').select('*, courses(title)').order('created_at'),
+      supabase.from('courses').select('id, title').order('title'),
+    ]);
+    setUsers(u||[]); setCourses(c||[]); setLoading(false);
+  };
+  useEffect(() => { load(); }, []);
+
+  const assignCourse = async (userId, courseId) => {
+    const { error } = await supabase.from('user_profiles').update({ course_id: courseId || null }).eq('id', userId);
+    if (error) toast(error.message, 'error');
+    else { toast('Course assigned', 'success'); load(); }
+  };
+
+  const setRole = async (userId, role) => {
+    const { error } = await supabase.from('user_profiles').update({ role }).eq('id', userId);
+    if (error) toast(error.message, 'error');
+    else { toast('Role updated', 'success'); load(); }
+  };
+
+  return (
+    <div className="main-content">
+      <div className="page-header">
+        <div className="page-eyebrow">// admin · learners</div>
+        <div className="page-title">Learners</div>
+        <div className="page-sub">Manage user roles and course assignments.</div>
+      </div>
+      <div style={{padding:'20px 28px'}}>
+        {loading ? <div className="spinner"/> : (
+          <table className="data-table">
+            <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Assigned Course</th></tr></thead>
+            <tbody>{users.map(u => (
+              <tr key={u.id}>
+                <td style={{fontWeight:500}}>{u.name || '—'}</td>
+                <td className="mono-cell" style={{fontSize:12}}>{u.email}</td>
+                <td>
+                  <select value={u.role||'learner'} onChange={e=>setRole(u.id,e.target.value)}
+                    style={{fontSize:11,padding:'3px 8px',background:'var(--bg-4)'}}>
+                    <option value="learner">learner</option>
+                    <option value="admin">admin</option>
+                  </select>
+                </td>
+                <td>
+                  <select value={u.course_id||''} onChange={e=>assignCourse(u.id,e.target.value)}
+                    style={{fontSize:11,padding:'3px 8px',background:'var(--bg-4)',maxWidth:200}}>
+                    <option value="">— unassigned —</option>
+                    {courses.map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
+                  </select>
+                </td>
+              </tr>
+            ))}</tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ── ADMIN ANALYTICS ────────────────────────────────────────── */
+function AdminAnalyticsPage() {
+  const [stats, setStats] = useState(null);
+  useEffect(() => {
+    const load = async () => {
+      const [{ count: users }, { count: topics }, { count: sessions }, { data: times }] = await Promise.all([
+        supabase.from('user_profiles').select('*',{count:'exact',head:true}).eq('role','learner'),
+        supabase.from('topic_progress').select('*',{count:'exact',head:true}).eq('status','completed'),
+        supabase.from('sessions').select('*',{count:'exact',head:true}),
+        supabase.from('sessions').select('duration_sec').not('duration_sec','is',null),
+      ]);
+      const totalMin = Math.round((times||[]).reduce((a,s)=>a+(s.duration_sec||0),0)/60);
+      setStats({ users, topics, sessions, totalMin });
+    };
+    load();
+  }, []);
+
+  return (
+    <div className="main-content">
+      <div className="page-header">
+        <div className="page-eyebrow">// admin · analytics</div>
+        <div className="page-title">Analytics</div>
+        <div className="page-sub">Platform-wide learning metrics.</div>
+      </div>
+      {stats && (
+        <div className="stat-grid">
+          {[
+            { label:'Active Learners', value: stats.users, color:'var(--accent)' },
+            { label:'Topics Completed', value: stats.topics, color:'var(--success)' },
+            { label:'Study Sessions', value: stats.sessions, color:'var(--info)' },
+            { label:'Total Minutes', value: stats.totalMin, color:'var(--warn)' },
+          ].map((s,i) => (
+            <div key={i} className="stat-card">
+              <div className="stat-value" style={{color:s.color}}>{s.value??'—'}</div>
+              <div className="stat-label">{s.label}</div>
+            </div>
+          ))}
+        </div>
+      )}
+      <div style={{padding:'0 28px 28px'}}>
+        <div style={{background:'var(--bg-2)',border:'1px solid var(--border-0)',borderRadius:'var(--radius-md)',padding:24,textAlign:'center',color:'var(--text-2)',fontSize:13}}>
+          Per-learner analytics, quiz score breakdowns, weak topic analysis, and cohort comparisons coming in Phase F.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── TOPIC PLACEHOLDER ──────────────────────────────────────── */
+function TopicPage({ topicId, setPage }) {
+  return (
+    <div className="main-content">
+      <div className="page-header">
+        <div className="page-eyebrow">// topic viewer</div>
+        <div className="page-title">Topic</div>
+        <div className="page-sub">Notes · Resources · IDE · Quiz · Challenges — coming in Phase C.</div>
+      </div>
+      <div style={{padding:28}}>
+        <div style={{background:'var(--bg-2)',border:'1px dashed var(--border-1)',borderRadius:'var(--radius-md)',padding:32,textAlign:'center'}}>
+          <div style={{fontFamily:'var(--font-code)',color:'var(--accent)',fontSize:13,marginBottom:8}}>topic_id: {topicId}</div>
+          <div style={{color:'var(--text-2)',fontSize:13}}>Full topic viewer with IDE, multi-round quiz, and challenges builds in Phase C.</div>
+          <button className="btn btn-ghost btn-sm" style={{marginTop:16}} onClick={()=>setPage('phases')}>← Back to phases</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── TOAST CONTAINER ────────────────────────────────────────── */
+function ToastContainer({ toasts }) {
+  return (
+    <div className="toast-wrap">
+      {toasts.map(t => (
+        <div key={t.id} className={`toast ${t.type}`}>
+          <span>{t.type==='success'?'✓':t.type==='error'?'✗':'ℹ'}</span>
+          <span>{t.msg}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ── ROOT APP ───────────────────────────────────────────────── */
+function App() {
+  const [session, setSession] = useState(undefined); // undefined = loading
+  const [profile, setProfile] = useState(null);
+  const [page, setPage] = useState('dashboard');
+  const [activeTopic, setActiveTopic] = useState(null);
+  const { toasts, show: toast } = useToast();
+
+  // Auth listener
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
+      setSession(session);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Load profile
+  useEffect(() => {
+    if (!session?.user) { setProfile(null); return; }
+    supabase.from('user_profiles').select('*').eq('id', session.user.id).single()
+      .then(({ data }) => setProfile(data));
+  }, [session]);
+
+  if (session === undefined) return (
+    <div className="loading-screen">
+      <div className="loading-logo">prograde</div>
+      <div className="spinner"/>
+    </div>
+  );
+
+  if (!session) return <AuthPage/>;
+
+  const routeLabel = {
+    dashboard: 'dashboard', phases: 'course', sessions: 'time-log',
+    topic: 'topic', admin: 'admin', 'admin-courses': 'admin/courses',
+    'admin-users': 'admin/learners', 'admin-analytics': 'admin/analytics'
+  }[page] || page;
+
+  const renderPage = () => {
+    if (page === 'dashboard')        return <DashboardPage user={session.user} profile={profile}/>;
+    if (page === 'phases')           return <PhasesPage user={session.user} profile={profile} setPage={setPage} setActiveTopic={setActiveTopic}/>;
+    if (page === 'sessions')         return <SessionsPage user={session.user}/>;
+    if (page === 'topic')            return <TopicPage topicId={activeTopic} setPage={setPage}/>;
+    if (page === 'admin')            return <AdminHomePage setPage={setPage}/>;
+    if (page === 'admin-courses')    return <AdminCoursesPage user={session.user} toast={toast}/>;
+    if (page === 'admin-users')      return <AdminUsersPage toast={toast}/>;
+    if (page === 'admin-analytics')  return <AdminAnalyticsPage/>;
+    return <DashboardPage user={session.user} profile={profile}/>;
+  };
+
+  return (
+    <AppCtx.Provider value={{ session, profile, toast }}>
+      <TopNav user={session.user} profile={profile} route={routeLabel} topicId={activeTopic}/>
+      <div className="app-shell">
+        <Sidebar profile={profile} page={page} setPage={setPage}/>
+        {renderPage()}
+      </div>
+      <ToastContainer toasts={toasts}/>
+    </AppCtx.Provider>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
