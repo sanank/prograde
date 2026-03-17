@@ -198,11 +198,13 @@ code, .mono { font-family: var(--font-code); }
   border-right: 1px solid var(--border-0);
   display: flex;
   flex-direction: column;
+  overflow-x: visible;
   overflow-y: auto;
   flex-shrink: 0;
   transition: width .2s ease;
 }
-.sidebar.collapsed { width: 48px; overflow: hidden; }
+.sidebar.collapsed { width: 48px; }
+.sidebar { overflow-y: auto; overflow-x: visible; }
 .sidebar.collapsed .sidebar-label,
 .sidebar.collapsed .item-label,
 .sidebar.collapsed .item-badge,
@@ -281,11 +283,18 @@ code, .mono { font-family: var(--font-code); }
 .sidebar-profile-name { font-size: 12px; font-weight: 500; color: var(--text-0); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sidebar-profile-role { font-size: 10px; color: var(--text-2); font-family: var(--font-code); }
 .profile-menu {
-  position: absolute; bottom: calc(100% + 4px); left: 8px; right: 8px;
-  background: var(--bg-3); border: 1px solid var(--border-1);
-  border-radius: var(--radius-md); padding: 12px;
-  z-index: 200;
+  position: fixed;
+  bottom: 56px;
+  left: 8px;
+  width: 224px;
+  background: var(--bg-3);
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  z-index: 1000;
+  box-shadow: 0 8px 32px rgba(0,0,0,.4);
 }
+.sidebar.collapsed .profile-menu { left: 4px; width: 200px; }
 .profile-menu-header { padding-bottom: 10px; border-bottom: 1px solid var(--border-0); margin-bottom: 8px; }
 .profile-menu-name { font-size: 13px; font-weight: 500; color: var(--text-0); }
 .profile-menu-email { font-size: 11px; color: var(--text-2); font-family: var(--font-code); margin-top: 2px; }
@@ -785,7 +794,7 @@ function TopNav({ user, profile, route, topicId }) {
           </div>
         )}
         <div className="avatar">
-          {(profile?.name || user?.email || '?').slice(0,2).toUpperCase()}
+          {(profile?.name || (user?.email ? user.email.split('@')[0] : 'U')).slice(0,2).toUpperCase()}
         </div>
 
       </div>
@@ -798,8 +807,9 @@ function Sidebar({ profile, page, setPage }) {
   const [collapsed, setCollapsed] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const isAdmin = profile?.role === 'admin';
-  const initials = (profile?.name || profile?.email || '?').slice(0,2).toUpperCase();
-  const displayName = profile?.name || (profile?.email ? profile.email.split('@')[0] : '');
+  const emailPrefix = profile?.email ? profile.email.split('@')[0] : '';
+  const initials = (profile?.name || emailPrefix || 'U').slice(0,2).toUpperCase();
+  const displayName = profile?.name || emailPrefix;
 
   const learnerItems = [
     { id: 'dashboard', icon: '◈', label: 'Dashboard' },
@@ -854,7 +864,7 @@ function Sidebar({ profile, page, setPage }) {
         {profileOpen && (
           <div className="profile-menu">
             <div className="profile-menu-header">
-              <div className="profile-menu-name">{displayName || '—'}</div>
+              <div className="profile-menu-name">{displayName}</div>
               <div className="profile-menu-email">{profile?.email}</div>
               <span className="profile-menu-role" style={{
                 background: isAdmin ? 'var(--warn-dim)' : 'var(--info-dim)',
@@ -874,7 +884,7 @@ function Sidebar({ profile, page, setPage }) {
           <div className="sidebar-profile-avatar">{initials}</div>
           {!collapsed && (
             <div className="sidebar-profile-info">
-              <div className="sidebar-profile-name">{displayName || profile?.email || '—'}</div>
+              <div className="sidebar-profile-name">{displayName}</div>
               <div className="sidebar-profile-role">{profile?.role || 'learner'}</div>
             </div>
           )}
@@ -914,7 +924,7 @@ function DashboardPage({ user, profile }) {
   return (
     <div className="main-content">
       <div className="page-header">
-        <div className="page-title">Welcome back{profile?.name ? ', ' + profile.name : profile?.email ? ', ' + profile.email.split('@')[0] : ''}</div>
+        <div className="page-title">Welcome back, {profile?.name || (profile?.email ? profile.email.split('@')[0] : '')}</div>
         <div className="page-sub">Track your progress, manage your time, stay on course.</div>
       </div>
       {loading ? <div style={{padding:40,textAlign:'center'}}><div className="spinner" style={{margin:'0 auto'}}/></div> : (
@@ -923,7 +933,7 @@ function DashboardPage({ user, profile }) {
             { label: 'Topics Completed', value: stats.done, color: 0 },
             { label: 'Study Sessions',   value: stats.sessions, color: 1 },
             { label: 'Minutes Studied',  value: stats.minutes, color: 2 },
-            { label: 'Streak Days',      value: '—', color: 3 },
+
           ].map((s,i) => (
             <div key={i} className="stat-card">
               <div className="stat-value" style={{color: statColor(s.color)}}>{s.value}</div>
