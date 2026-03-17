@@ -17,8 +17,16 @@
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-<!-- Config (git-ignored, must exist locally) -->
-<script src="config.js"></script>
+<!-- Config: values are inlined for GitHub Pages hosting.
+     ANTHROPIC_API_KEY is only used server-side in future phases — safe to leave blank here.
+     Supabase anon key is designed to be public (RLS enforces security). -->
+<script>
+window.PROGRADE_CONFIG = {
+  SUPABASE_URL:      "https://docfqjzyzjriugpubzkp.supabase.co",
+  SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRvY2Zxanp5empyaXVncHViemtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NTU3MTEsImV4cCI6MjA4OTMzMTcxMX0.vP2E4EPBrh3v_vYuV7JetmZmxQg2SJ-s3p474lmsRZI",
+  ANTHROPIC_API_KEY: "",
+};
+</script>
 
 <style>
 /* ── PROGRADE DESIGN TOKENS ─────────────────────────────────── */
