@@ -150,14 +150,10 @@ code, .mono { font-family: var(--font-code); }
   letter-spacing: -.01em;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
-.topnav-brand .slash { color: var(--text-2); font-weight: 400; }
-.topnav-route {
-  font-family: var(--font-code);
-  font-size: 12px;
-  color: var(--text-2);
-}
+.topnav-brand .sep { color: var(--text-2); font-weight: 400; margin: 0 2px; }
+.topnav-brand .page-crumb { color: var(--text-1); font-weight: 400; font-size: 14px; }
 .topnav-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
 .avatar {
   width: 30px; height: 30px; border-radius: 50%;
@@ -204,7 +200,16 @@ code, .mono { font-family: var(--font-code); }
   flex-direction: column;
   overflow-y: auto;
   flex-shrink: 0;
+  transition: width .2s ease;
 }
+.sidebar.collapsed { width: 48px; overflow: hidden; }
+.sidebar.collapsed .sidebar-label,
+.sidebar.collapsed .item-label,
+.sidebar.collapsed .item-badge,
+.sidebar.collapsed .sidebar-footer-detail { display: none; }
+.sidebar.collapsed .sidebar-item { justify-content: center; padding: 10px 0; }
+.sidebar.collapsed .item-icon { width: 20px; font-size: 15px; }
+.sidebar.collapsed .sidebar-collapse-btn { justify-content: center; }
 .sidebar-section { padding: 16px 0 8px; }
 .sidebar-label {
   font-size: 10px;
@@ -245,6 +250,56 @@ code, .mono { font-family: var(--font-code); }
   border-radius: 99px;
 }
 .sidebar-item.active .item-badge { background: var(--accent-dim); color: var(--accent); }
+.sidebar-collapse-btn {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 16px; width: 100%; background: none;
+  border: none; color: var(--text-2); font-size: 12px;
+  cursor: pointer; transition: color .12s;
+  border-top: 1px solid var(--border-0);
+}
+.sidebar-collapse-btn:hover { color: var(--text-0); }
+.sidebar-footer {
+  margin-top: auto;
+  border-top: 1px solid var(--border-0);
+  position: relative;
+}
+.sidebar-profile-btn {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px; width: 100%; background: none;
+  border: none; cursor: pointer; text-align: left;
+  transition: background .12s;
+}
+.sidebar-profile-btn:hover { background: var(--bg-4); }
+.sidebar-profile-avatar {
+  width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+  background: var(--accent-dim); border: 1.5px solid var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 600; color: var(--accent);
+  font-family: var(--font-code);
+}
+.sidebar-profile-info { flex: 1; min-width: 0; }
+.sidebar-profile-name { font-size: 12px; font-weight: 500; color: var(--text-0); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sidebar-profile-role { font-size: 10px; color: var(--text-2); font-family: var(--font-code); }
+.profile-menu {
+  position: absolute; bottom: calc(100% + 4px); left: 8px; right: 8px;
+  background: var(--bg-3); border: 1px solid var(--border-1);
+  border-radius: var(--radius-md); padding: 12px;
+  z-index: 200;
+}
+.profile-menu-header { padding-bottom: 10px; border-bottom: 1px solid var(--border-0); margin-bottom: 8px; }
+.profile-menu-name { font-size: 13px; font-weight: 500; color: var(--text-0); }
+.profile-menu-email { font-size: 11px; color: var(--text-2); font-family: var(--font-code); margin-top: 2px; }
+.profile-menu-role { display: inline-block; margin-top: 6px; font-family: var(--font-code); font-size: 10px; padding: 2px 7px; border-radius: 3px; }
+.profile-menu-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 8px; border-radius: var(--radius-sm);
+  font-size: 12px; color: var(--text-1); cursor: pointer;
+  background: none; border: none; width: 100%; text-align: left;
+  transition: background .12s;
+}
+.profile-menu-item:hover { background: var(--bg-5); color: var(--text-0); }
+.profile-menu-item.danger { color: var(--error); }
+.profile-menu-item.danger:hover { background: var(--error-dim); }
 
 /* ── MAIN CONTENT ──────────────────────────────────────────── */
 .main-content {
@@ -718,8 +773,8 @@ function TopNav({ user, profile, route, topicId }) {
   return (
     <nav className="topnav">
       <div className="topnav-brand">
-        prograde<span className="slash"> / </span>
-        <span style={{color:'var(--text-1)',fontWeight:400,fontSize:13}}>{route}</span>
+        Prograde
+        {route && route !== 'dashboard' && <><span className="sep"> / </span><span className="page-crumb">{route.charAt(0).toUpperCase() + route.slice(1).replace(/-/g,' ').replace(/\//g,' / ')}</span></>}
       </div>
       <div className="topnav-right">
         {active && (
@@ -732,7 +787,7 @@ function TopNav({ user, profile, route, topicId }) {
         <div className="avatar">
           {(profile?.name || user?.email || '?').slice(0,2).toUpperCase()}
         </div>
-        <button className="btn btn-ghost btn-sm" onClick={() => supabase.auth.signOut()}>Sign out</button>
+
       </div>
     </nav>
   );
@@ -740,52 +795,95 @@ function TopNav({ user, profile, route, topicId }) {
 
 /* ── SIDEBAR ─────────────────────────────────────────────────── */
 function Sidebar({ profile, page, setPage }) {
+  const [collapsed, setCollapsed] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const isAdmin = profile?.role === 'admin';
+  const initials = (profile?.name || profile?.email || '?').slice(0,2).toUpperCase();
+  const displayName = profile?.name || (profile?.email ? profile.email.split('@')[0] : '');
+
   const learnerItems = [
     { id: 'dashboard', icon: '◈', label: 'Dashboard' },
     { id: 'phases',    icon: '⬡', label: 'My Course' },
     { id: 'sessions',  icon: '⏱', label: 'Time Log' },
   ];
   const adminItems = [
-    { id: 'admin',         icon: '⚙', label: 'Admin Home' },
-    { id: 'admin-courses', icon: '◉', label: 'Courses' },
-    { id: 'admin-users',   icon: '◎', label: 'Learners' },
-    { id: 'admin-analytics', icon: '▤', label: 'Analytics' },
+    { id: 'admin',            icon: '⚙', label: 'Admin Home' },
+    { id: 'admin-courses',    icon: '◉', label: 'Courses' },
+    { id: 'admin-users',      icon: '◎', label: 'Learners' },
+    { id: 'admin-analytics',  icon: '▤', label: 'Analytics' },
   ];
+
+  // Close profile menu on outside click
+  useEffect(() => {
+    if (!profileOpen) return;
+    const handler = (e) => {
+      if (!e.target.closest('.sidebar-footer')) setProfileOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [profileOpen]);
+
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar${collapsed?' collapsed':''}`}>
       <div className="sidebar-section">
-        <div className="sidebar-label">Learner</div>
+        {!collapsed && <div className="sidebar-label">Learner</div>}
         {learnerItems.map(item => (
           <button key={item.id} className={`sidebar-item ${page===item.id?'active':''}`}
-            onClick={() => setPage(item.id)}>
+            onClick={() => setPage(item.id)}
+            title={collapsed ? item.label : ''}>
             <span className="item-icon">{item.icon}</span>
-            {item.label}
+            <span className="item-label">{item.label}</span>
           </button>
         ))}
       </div>
       {isAdmin && (
         <div className="sidebar-section" style={{borderTop:'1px solid var(--border-0)'}}>
-          <div className="sidebar-label" style={{color:'var(--warn)'}}>Admin</div>
+          {!collapsed && <div className="sidebar-label" style={{color:'var(--warn)'}}>Admin</div>}
           {adminItems.map(item => (
             <button key={item.id} className={`sidebar-item ${page===item.id?'active':''}`}
-              onClick={() => setPage(item.id)}>
+              onClick={() => setPage(item.id)}
+              title={collapsed ? item.label : ''}>
               <span className="item-icon">{item.icon}</span>
-              {item.label}
+              <span className="item-label">{item.label}</span>
             </button>
           ))}
         </div>
       )}
-      <div style={{marginTop:'auto',padding:'16px',borderTop:'1px solid var(--border-0)'}}>
-        <div style={{fontSize:11,color:'var(--text-2)',fontFamily:'var(--font-code)',marginBottom:4}}>signed in as</div>
-        <div style={{fontSize:12,color:'var(--text-1)',wordBreak:'break-all'}}>{profile?.email}</div>
-        <div style={{marginTop:4}}>
-          <span style={{
-            fontFamily:'var(--font-code)',fontSize:10,padding:'2px 6px',
-            borderRadius:3,background: profile?.role==='admin'?'var(--warn-dim)':'var(--info-dim)',
-            color: profile?.role==='admin'?'var(--warn)':'var(--info)'
-          }}>{profile?.role||'learner'}</span>
-        </div>
+
+      <div className="sidebar-footer">
+        {profileOpen && (
+          <div className="profile-menu">
+            <div className="profile-menu-header">
+              <div className="profile-menu-name">{displayName || '—'}</div>
+              <div className="profile-menu-email">{profile?.email}</div>
+              <span className="profile-menu-role" style={{
+                background: isAdmin ? 'var(--warn-dim)' : 'var(--info-dim)',
+                color: isAdmin ? 'var(--warn)' : 'var(--info)'
+              }}>{profile?.role || 'learner'}</span>
+            </div>
+            <button className="profile-menu-item" onClick={() => { setPage('dashboard'); setProfileOpen(false); }}>
+              <span>◈</span> Dashboard
+            </button>
+            <button className="profile-menu-item danger" onClick={() => { supabase.auth.signOut(); setProfileOpen(false); }}>
+              <span>↪</span> Sign out
+            </button>
+          </div>
+        )}
+        <button className="sidebar-profile-btn" onClick={() => setProfileOpen(o => !o)}
+          title={collapsed ? (displayName || profile?.email || '') : ''}>
+          <div className="sidebar-profile-avatar">{initials}</div>
+          {!collapsed && (
+            <div className="sidebar-profile-info">
+              <div className="sidebar-profile-name">{displayName || profile?.email || '—'}</div>
+              <div className="sidebar-profile-role">{profile?.role || 'learner'}</div>
+            </div>
+          )}
+        </button>
+        <button className="sidebar-collapse-btn" onClick={() => setCollapsed(c => !c)}
+          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}>
+          <span style={{fontSize:12}}>{collapsed ? '▶' : '◀'}</span>
+          <span className="item-label" style={{fontSize:11}}>Collapse</span>
+        </button>
       </div>
     </aside>
   );
@@ -816,8 +914,7 @@ function DashboardPage({ user, profile }) {
   return (
     <div className="main-content">
       <div className="page-header">
-        <div className="page-eyebrow">// dashboard</div>
-        <div className="page-title">Welcome back, {profile?.name || 'Learner'}</div>
+        <div className="page-title">Welcome back{profile?.name ? ', ' + profile.name : profile?.email ? ', ' + profile.email.split('@')[0] : ''}</div>
         <div className="page-sub">Track your progress, manage your time, stay on course.</div>
       </div>
       {loading ? <div style={{padding:40,textAlign:'center'}}><div className="spinner" style={{margin:'0 auto'}}/></div> : (
@@ -894,7 +991,6 @@ function PhasesPage({ user, profile, setPage, setActiveTopic }) {
   if (!profile?.course_id) return (
     <div className="main-content">
       <div className="page-header">
-        <div className="page-eyebrow">// my course</div>
         <div className="page-title">No course assigned</div>
         <div className="page-sub">Ask your admin to assign you to a course.</div>
       </div>
@@ -909,7 +1005,6 @@ function PhasesPage({ user, profile, setPage, setActiveTopic }) {
   return (
     <div className="main-content">
       <div className="page-header">
-        <div className="page-eyebrow">// course · {course?.role_title}</div>
         <div className="page-title">{course?.title}</div>
         <div className="page-sub">{course?.description}</div>
       </div>
@@ -994,7 +1089,6 @@ function SessionsPage({ user }) {
   return (
     <div className="main-content">
       <div className="page-header">
-        <div className="page-eyebrow">// time log</div>
         <div className="page-title">Study Sessions</div>
         <div className="page-sub">All tracked study sessions with duration and topic.</div>
       </div>
@@ -1041,7 +1135,6 @@ function AdminHomePage({ setPage }) {
   return (
     <div className="main-content">
       <div className="page-header">
-        <div className="page-eyebrow">// admin</div>
         <div className="page-title">Admin Panel</div>
         <div className="page-sub">Configure courses, manage learners, analyse progress.</div>
       </div>
@@ -1086,7 +1179,6 @@ function AdminCoursesPage({ user, toast }) {
     <div className="main-content">
       <div className="page-header" style={{display:'flex',alignItems:'flex-start',gap:16}}>
         <div style={{flex:1}}>
-          <div className="page-eyebrow">// admin · courses</div>
           <div className="page-title">Courses</div>
           <div className="page-sub">Create and configure role-based learning paths.</div>
         </div>
@@ -1163,7 +1255,6 @@ function AdminUsersPage({ toast }) {
   return (
     <div className="main-content">
       <div className="page-header">
-        <div className="page-eyebrow">// admin · learners</div>
         <div className="page-title">Learners</div>
         <div className="page-sub">Manage user roles and course assignments.</div>
       </div>
@@ -1218,7 +1309,6 @@ function AdminAnalyticsPage() {
   return (
     <div className="main-content">
       <div className="page-header">
-        <div className="page-eyebrow">// admin · analytics</div>
         <div className="page-title">Analytics</div>
         <div className="page-sub">Platform-wide learning metrics.</div>
       </div>
@@ -1251,7 +1341,6 @@ function TopicPage({ topicId, setPage }) {
   return (
     <div className="main-content">
       <div className="page-header">
-        <div className="page-eyebrow">// topic viewer</div>
         <div className="page-title">Topic</div>
         <div className="page-sub">Notes · Resources · IDE · Quiz · Challenges — coming in Phase C.</div>
       </div>
