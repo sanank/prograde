@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Prograde</title>
 
-<!-- Fonts: JetBrains Mono for code, Inter for UI -->
+<!-- Fonts: Lora serif (headings), DM Mono (code/labels), Inter (UI) -->
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=DM+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 
 <!-- Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -31,64 +31,96 @@ window.PROGRADE_CONFIG = {
 <style>
 /* ── PROGRADE DESIGN TOKENS ─────────────────────────────────── */
 :root {
-  /* Base — VS Code Dark+ inspired */
-  --bg-0:       #0d0d0f;   /* deepest bg — body */
-  --bg-1:       #141416;   /* sidebar bg */
-  --bg-2:       #1a1a1e;   /* panel bg */
-  --bg-3:       #222228;   /* card bg */
-  --bg-4:       #2a2a32;   /* hover / input bg */
-  --bg-5:       #32323c;   /* active / selected bg */
+  /* ── LIGHT: Aged lecture paper ──────────────────────── */
+  --bg-0:       #ede0c4;
+  --bg-1:       #e4d5ae;
+  --bg-2:       #d8c99a;
+  --bg-3:       #f0e6ce;
+  --bg-4:       #e8dab8;
+  --bg-5:       #dccfa6;
 
-  /* Borders */
-  --border-0:   rgba(255,255,255,.06);
-  --border-1:   rgba(255,255,255,.10);
-  --border-2:   rgba(255,255,255,.16);
+  --border-0:   rgba(80,45,10,.07);
+  --border-1:   rgba(80,45,10,.13);
+  --border-2:   rgba(80,45,10,.24);
 
-  /* Text */
-  --text-0:     #e8e8f0;   /* primary */
-  --text-1:     #a0a0b8;   /* secondary */
-  --text-2:     #606078;   /* muted / placeholder */
-  --text-inv:   #0d0d0f;   /* text on bright bg */
+  --text-0:     #1c0f04;
+  --text-1:     #3d2510;
+  --text-2:     #6e4a28;
+  --text-3:     #9c7a55;
+  --text-inv:   #f0e6ce;
 
-  /* Accent — Prograde teal-green (VS Code intellisense-ish) */
-  --accent:     #4af0b0;
-  --accent-dim: #1a3d30;
-  --accent-glow:rgba(74,240,176,.15);
+  --accent:     #8b3200;
+  --accent-dim: #f2e0d4;
+  --accent-glow:rgba(139,50,0,.12);
 
-  /* Semantic */
-  --info:       #569cd6;   /* VS Code blue — types */
-  --info-dim:   #1a2d42;
-  --success:    #4ec9b0;   /* VS Code teal — functions */
-  --success-dim:#1a302c;
-  --warn:       #dcdcaa;   /* VS Code yellow — variables */
-  --warn-dim:   #2e2e1a;
-  --error:      #f44747;   /* VS Code red — errors */
-  --error-dim:  #2e1a1a;
-  --purple:     #c586c0;   /* VS Code purple — keywords */
-  --purple-dim: #2a1a2e;
-  --orange:     #ce9178;   /* VS Code orange — strings */
+  --success:    #1e5c14;
+  --success-dim:#dff0d8;
+  --warn:       #7a4200;
+  --warn-dim:   #f5e8cc;
+  --error:      #7a1010;
+  --error-dim:  #f5dada;
+  --info:       #1a3d70;
+  --info-dim:   #dde8f8;
 
-  /* Levels */
-  --level-basic:        #4ec9b0;
-  --level-intermediate: #dcdcaa;
-  --level-advanced:     #c586c0;
+  --level-basic:        #1e5c14;
+  --level-intermediate: #7a4200;
+  --level-advanced:     #6b1060;
 
-  /* Status */
-  --status-locked:      #606078;
-  --status-unlocked:    #569cd6;
-  --status-inprogress:  #dcdcaa;
-  --status-completed:   #4af0b0;
+  --status-locked:      #9c7a55;
+  --status-unlocked:    #1a3d70;
+  --status-inprogress:  #7a4200;
+  --status-completed:   #1e5c14;
 
-  /* Typography */
   --font-ui:   'Inter', system-ui, sans-serif;
-  --font-code: 'JetBrains Mono', monospace;
+  --font-code: 'DM Mono', monospace;
+  --font-serif:'Lora', Georgia, serif;
 
-  /* Sizing */
   --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
   --sidebar-w: 240px;
   --nav-h:     52px;
+}
+
+[data-theme="dark"] {
+  --bg-0:       #1c1408;
+  --bg-1:       #241a0c;
+  --bg-2:       #382810;
+  --bg-3:       #2a1e0e;
+  --bg-4:       #342614;
+  --bg-5:       #3e2e18;
+
+  --border-0:   rgba(255,210,140,.06);
+  --border-1:   rgba(255,210,140,.11);
+  --border-2:   rgba(255,210,140,.22);
+
+  --text-0:     #e8d4a8;
+  --text-1:     #c0984a;
+  --text-2:     #8a6a44;
+  --text-3:     #5a4028;
+  --text-inv:   #1c1408;
+
+  --accent:     #d4774a;
+  --accent-dim: #2e1c10;
+  --accent-glow:rgba(212,119,74,.14);
+
+  --success:    #68b85e;
+  --success-dim:#141e10;
+  --warn:       #d4984a;
+  --warn-dim:   #241a08;
+  --error:      #d46060;
+  --error-dim:  #201010;
+  --info:       #78a8e0;
+  --info-dim:   #101828;
+
+  --level-basic:        #68b85e;
+  --level-intermediate: #d4984a;
+  --level-advanced:     #b87ad4;
+
+  --status-locked:      #5a4028;
+  --status-unlocked:    #78a8e0;
+  --status-inprogress:  #d4984a;
+  --status-completed:   #68b85e;
 }
 
 /* ── RESET ──────────────────────────────────────────────────── */
@@ -132,8 +164,8 @@ code, .mono { font-family: var(--font-code); }
 /* ── TOPNAV ─────────────────────────────────────────────────── */
 .topnav {
   height: var(--nav-h);
-  background: var(--bg-1);
-  border-bottom: 1px solid var(--border-0);
+  background: var(--bg-2);
+  border-bottom: 1px solid var(--border-1);
   display: flex;
   align-items: center;
   padding: 0 20px;
@@ -143,17 +175,17 @@ code, .mono { font-family: var(--font-code); }
   z-index: 100;
 }
 .topnav-brand {
-  font-family: var(--font-code);
+  font-family: var(--font-serif);
   font-size: 15px;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--text-0);
   letter-spacing: -.01em;
   display: flex;
   align-items: center;
   gap: 6px;
 }
-.topnav-brand .sep { color: var(--text-2); font-weight: 400; margin: 0 2px; }
-.topnav-brand .page-crumb { color: var(--text-1); font-weight: 400; font-size: 14px; }
+.topnav-brand .sep { color: var(--text-2); font-weight: 300; margin: 0 2px; }
+.topnav-brand .page-crumb { color: var(--text-1); font-weight: 400; font-size: 13px; }
 .topnav-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
 .avatar {
   width: 30px; height: 30px; border-radius: 50%;
@@ -166,9 +198,9 @@ code, .mono { font-family: var(--font-code); }
 .punch-clock {
   font-family: var(--font-code);
   font-size: 12px;
-  color: var(--text-1);
+  color: var(--text-0);
   background: var(--bg-3);
-  border: 1px solid var(--border-0);
+  border: 0.5px solid var(--border-1);
   border-radius: var(--radius-sm);
   padding: 4px 10px;
   display: flex;
@@ -786,6 +818,11 @@ function TopNav({ user, profile, route, topicId }) {
         {route && route !== 'dashboard' && <><span className="sep"> / </span><span className="page-crumb">{route.charAt(0).toUpperCase() + route.slice(1).replace(/-/g,' ').replace(/\//g,' / ')}</span></>}
       </div>
       <div className="topnav-right">
+        <button
+          onClick={() => { const d = document.documentElement; d.hasAttribute('data-theme') ? d.removeAttribute('data-theme') : d.setAttribute('data-theme','dark'); }}
+          style={{background:'transparent',border:'0.5px solid var(--border-2)',borderRadius:'var(--radius-sm)',padding:'5px 10px',cursor:'pointer',fontFamily:'var(--font-code)',fontSize:'11px',color:'var(--text-1)',letterSpacing:'.04em'}}
+          title="Toggle light / dark"
+        >◑</button>
         {active && (
           <div className="punch-clock">
             <div className={`dot ${idle ? 'idle' : ''}`}/>
