@@ -30,49 +30,50 @@ window.PROGRADE_CONFIG = {
 
 <style>
 /* ── PROGRADE DESIGN TOKENS ─────────────────────────────────── */
+
+/* ══ DEFAULT: VS Code Dark (IDE) ══════════════════════════════ */
 :root {
-  /* ── LIGHT: Aged lecture paper ──────────────────────── */
-  --bg-0:       #ede0c4;
-  --bg-1:       #e4d5ae;
-  --bg-2:       #d8c99a;
-  --bg-3:       #f0e6ce;
-  --bg-4:       #e8dab8;
-  --bg-5:       #dccfa6;
+  --bg-0:       #0d0d0f;
+  --bg-1:       #141416;
+  --bg-2:       #1e1e22;
+  --bg-3:       #222228;
+  --bg-4:       #2a2a32;
+  --bg-5:       #32323c;
 
-  --border-0:   rgba(80,45,10,.07);
-  --border-1:   rgba(80,45,10,.13);
-  --border-2:   rgba(80,45,10,.24);
+  --border-0:   rgba(255,255,255,.05);
+  --border-1:   rgba(255,255,255,.09);
+  --border-2:   rgba(255,255,255,.16);
 
-  --text-0:     #1c0f04;
-  --text-1:     #3d2510;
-  --text-2:     #6e4a28;
-  --text-3:     #9c7a55;
-  --text-inv:   #f0e6ce;
+  --text-0:     #e8e8f0;
+  --text-1:     #a0a0b8;
+  --text-2:     #606078;
+  --text-3:     #404058;
+  --text-inv:   #0d0d0f;
 
-  --accent:     #8b3200;
-  --accent-dim: #f2e0d4;
-  --accent-glow:rgba(139,50,0,.12);
+  --accent:     #4af0b0;
+  --accent-dim: #0e2e22;
+  --accent-glow:rgba(74,240,176,.14);
 
-  --success:    #1e5c14;
-  --success-dim:#dff0d8;
-  --warn:       #7a4200;
-  --warn-dim:   #f5e8cc;
-  --error:      #7a1010;
-  --error-dim:  #f5dada;
-  --info:       #1a3d70;
-  --info-dim:   #dde8f8;
+  --success:    #4ec9b0;
+  --success-dim:#0e2420;
+  --warn:       #dcdcaa;
+  --warn-dim:   #28280e;
+  --error:      #f44747;
+  --error-dim:  #280e0e;
+  --info:       #569cd6;
+  --info-dim:   #0e1e30;
 
-  --level-basic:        #1e5c14;
-  --level-intermediate: #7a4200;
-  --level-advanced:     #6b1060;
+  --level-basic:        #4ec9b0;
+  --level-intermediate: #dcdcaa;
+  --level-advanced:     #c586c0;
 
-  --status-locked:      #9c7a55;
-  --status-unlocked:    #1a3d70;
-  --status-inprogress:  #7a4200;
-  --status-completed:   #1e5c14;
+  --status-locked:      #404058;
+  --status-unlocked:    #569cd6;
+  --status-inprogress:  #dcdcaa;
+  --status-completed:   #4af0b0;
 
   --font-ui:   'Inter', system-ui, sans-serif;
-  --font-code: 'DM Mono', monospace;
+  --font-code: 'JetBrains Mono', 'DM Mono', monospace;
   --font-serif:'Lora', Georgia, serif;
 
   --radius-sm: 4px;
@@ -82,46 +83,171 @@ window.PROGRADE_CONFIG = {
   --nav-h:     52px;
 }
 
-[data-theme="dark"] {
-  --bg-0:       #1c1408;
-  --bg-1:       #241a0c;
-  --bg-2:       #382810;
-  --bg-3:       #2a1e0e;
-  --bg-4:       #342614;
-  --bg-5:       #3e2e18;
+/* ══ KRAFT LIGHT: Buff side of the paper ═══════════════════════ */
+[data-theme="kraft"] {
+  --font-ui:   'Inter', system-ui, sans-serif;
+  --font-code: 'DM Mono', monospace;
+  --font-serif:'Lora', Georgia, serif;
+  --bg-0:       #f0e6d0;
+  --bg-1:       #e8dcc0;
+  --bg-2:       #ddd0b0;
+  --bg-3:       #f7f2e8;
+  --bg-4:       #e2d6bc;
+  --bg-5:       #d8ccb0;
 
-  --border-0:   rgba(255,210,140,.06);
-  --border-1:   rgba(255,210,140,.11);
-  --border-2:   rgba(255,210,140,.22);
+  --border-0:   rgba(80,50,15,.07);
+  --border-1:   rgba(80,50,15,.14);
+  --border-2:   rgba(80,50,15,.26);
+
+  --text-0:     #2b1d0e;
+  --text-1:     #4c3420;
+  --text-2:     #7a5c3a;
+  --text-3:     #a8896a;
+  --text-inv:   #f7f2e8;
+
+  --accent:     #9b3a10;
+  --accent-dim: #f5e8e0;
+  --accent-glow:rgba(155,58,16,.12);
+
+  --success:    #2e5c1a;
+  --success-dim:#e8f0e2;
+  --warn:       #7a4e00;
+  --warn-dim:   #faedd8;
+  --error:      #8b1a1a;
+  --error-dim:  #f5e0e0;
+  --info:       #1e3d70;
+  --info-dim:   #e4ecf7;
+
+  --level-basic:        #2e5c1a;
+  --level-intermediate: #7a4e00;
+  --level-advanced:     #6b1060;
+
+  --status-locked:      #a8896a;
+  --status-unlocked:    #1e3d70;
+  --status-inprogress:  #7a4e00;
+  --status-completed:   #2e5c1a;
+}
+
+/* ══ KRAFT DARK: Raw pigment underside ═════════════════════════ */
+[data-theme="kraft-dark"] {
+  --font-ui:   'Inter', system-ui, sans-serif;
+  --font-code: 'DM Mono', monospace;
+  --bg-0:       #1c1409;
+  --bg-1:       #241b0e;
+  --bg-2:       #382810;
+  --bg-3:       #2a1f10;
+  --bg-4:       #342614;
+  --bg-5:       #3e2e1a;
+
+  --border-0:   rgba(255,200,120,.05);
+  --border-1:   rgba(255,200,120,.11);
+  --border-2:   rgba(255,200,120,.22);
 
   --text-0:     #e8d4a8;
-  --text-1:     #c0984a;
-  --text-2:     #8a6a44;
-  --text-3:     #5a4028;
-  --text-inv:   #1c1408;
+  --text-1:     #c4a068;
+  --text-2:     #8c6e48;
+  --text-3:     #5c4428;
+  --text-inv:   #1c1409;
 
-  --accent:     #d4774a;
-  --accent-dim: #2e1c10;
-  --accent-glow:rgba(212,119,74,.14);
+  --accent:     #e07840;
+  --accent-dim: #3a2010;
+  --accent-glow:rgba(224,120,64,.14);
 
-  --success:    #68b85e;
-  --success-dim:#141e10;
-  --warn:       #d4984a;
-  --warn-dim:   #241a08;
+  --success:    #6ab85a;
+  --success-dim:#182e14;
+  --warn:       #c89a40;
+  --warn-dim:   #2c2008;
   --error:      #d46060;
   --error-dim:  #201010;
-  --info:       #78a8e0;
-  --info-dim:   #101828;
+  --info:       #6aa8dc;
+  --info-dim:   #142038;
 
-  --level-basic:        #68b85e;
-  --level-intermediate: #d4984a;
-  --level-advanced:     #b87ad4;
+  --level-basic:        #6ab85a;
+  --level-intermediate: #c89a40;
+  --level-advanced:     #c080c0;
 
-  --status-locked:      #5a4028;
-  --status-unlocked:    #78a8e0;
-  --status-inprogress:  #d4984a;
-  --status-completed:   #68b85e;
+  --status-locked:      #5c4428;
+  --status-unlocked:    #6aa8dc;
+  --status-inprogress:  #c89a40;
+  --status-completed:   #6ab85a;
 }
+
+
+[data-theme="kraft"] .topnav-brand,
+[data-theme="kraft-dark"] .topnav-brand {
+  font-family: var(--font-serif);
+  color: var(--text-0);
+}
+[data-theme="kraft"] .page-title,
+[data-theme="kraft-dark"] .page-title {
+  font-family: var(--font-serif);
+}
+[data-theme="vscode"] {
+  --bg-0:       #0d0d0f;
+  --bg-1:       #141416;
+  --bg-2:       #1a1a1e;
+  --bg-3:       #222228;
+  --bg-4:       #2a2a32;
+  --bg-5:       #32323c;
+
+  --border-0:   rgba(255,255,255,.06);
+  --border-1:   rgba(255,255,255,.10);
+  --border-2:   rgba(255,255,255,.16);
+
+  --text-0:     #e8e8f0;
+  --text-1:     #a0a0b8;
+  --text-2:     #606078;
+  --text-3:     #3a3a50;
+  --text-inv:   #0d0d0f;
+
+  --accent:     #4af0b0;
+  --accent-dim: #1a3d30;
+  --accent-glow:rgba(74,240,176,.15);
+
+  --success:    #4ec9b0;
+  --success-dim:#1a302c;
+  --warn:       #dcdcaa;
+  --warn-dim:   #2e2e1a;
+  --error:      #f44747;
+  --error-dim:  #2e1a1a;
+  --info:       #569cd6;
+  --info-dim:   #1a2d42;
+
+  --level-basic:        #4ec9b0;
+  --level-intermediate: #dcdcaa;
+  --level-advanced:     #c586c0;
+
+  --status-locked:      #606078;
+  --status-unlocked:    #569cd6;
+  --status-inprogress:  #dcdcaa;
+  --status-completed:   #4af0b0;
+}
+
+/* ── THEME TOGGLE ──────────────────────────────────────────── */
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--bg-3);
+  border: 0.5px solid var(--border-1);
+  border-radius: var(--radius-sm);
+  padding: 3px;
+}
+.tt-btn {
+  padding: 3px 9px;
+  border: none;
+  background: transparent;
+  color: var(--text-2);
+  font-family: var(--font-code);
+  font-size: 10px;
+  letter-spacing: .04em;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all .15s;
+  white-space: nowrap;
+}
+.tt-btn:hover { color: var(--text-0); background: var(--bg-4); }
+.tt-btn.active { background: var(--bg-5); color: var(--text-0); }
 
 /* ── RESET ──────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -161,6 +287,7 @@ code, .mono { font-family: var(--font-code); }
 /* ── LAYOUT ─────────────────────────────────────────────────── */
 #root { display: flex; flex-direction: column; min-height: 100vh; }
 
+
 /* ── TOPNAV ─────────────────────────────────────────────────── */
 .topnav {
   height: var(--nav-h);
@@ -175,10 +302,10 @@ code, .mono { font-family: var(--font-code); }
   z-index: 100;
 }
 .topnav-brand {
-  font-family: var(--font-serif);
+  font-family: var(--font-code);
   font-size: 15px;
   font-weight: 600;
-  color: var(--text-0);
+  color: var(--accent);
   letter-spacing: -.01em;
   display: flex;
   align-items: center;
@@ -677,6 +804,8 @@ const { useState, useEffect, useCallback, useRef, createContext, useContext } = 
 
 /* ── CONFIG ─────────────────────────────────────────────────── */
 const CFG = window.PROGRADE_CONFIG || {};
+const _savedTheme = localStorage.getItem('pg-theme') || 'vscode';
+if (_savedTheme !== 'vscode') document.documentElement.setAttribute('data-theme', _savedTheme);
 const supabase = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY);
 
 /* ── CONTEXT ────────────────────────────────────────────────── */
@@ -808,8 +937,29 @@ function AuthPage() {
   );
 }
 
+
+/* ── THEME TOGGLE COMPONENT ─────────────────────────────────── */
+function ThemeToggle({ theme, setTheme }) {
+  const themes = [
+    { id: 'vscode', label: 'IDE'   },
+    { id: 'kraft',  label: 'Light' },
+    { id: 'dark',   label: 'Dark'  },
+  ];
+  return (
+    <div className="theme-toggle">
+      {themes.map(t => (
+        <button key={t.id}
+          className={`tt-btn${theme===t.id?' active':''}`}
+          onClick={() => setTheme(t.id)}>
+          {t.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 /* ── TOPNAV ─────────────────────────────────────────────────── */
-function TopNav({ user, profile, route, topicId }) {
+function TopNav({ user, profile, route, topicId, theme, setTheme }) {
   const { elapsed, idle, active } = usePunchClock(user?.id, topicId);
   return (
     <nav className="topnav">
@@ -818,11 +968,6 @@ function TopNav({ user, profile, route, topicId }) {
         {route && route !== 'dashboard' && <><span className="sep"> / </span><span className="page-crumb">{route.charAt(0).toUpperCase() + route.slice(1).replace(/-/g,' ').replace(/\//g,' / ')}</span></>}
       </div>
       <div className="topnav-right">
-        <button
-          onClick={() => { const d = document.documentElement; d.hasAttribute('data-theme') ? d.removeAttribute('data-theme') : d.setAttribute('data-theme','dark'); }}
-          style={{background:'transparent',border:'0.5px solid var(--border-2)',borderRadius:'var(--radius-sm)',padding:'5px 10px',cursor:'pointer',fontFamily:'var(--font-code)',fontSize:'11px',color:'var(--text-1)',letterSpacing:'.04em'}}
-          title="Toggle light / dark"
-        >◑</button>
         {active && (
           <div className="punch-clock">
             <div className={`dot ${idle ? 'idle' : ''}`}/>
@@ -1418,11 +1563,19 @@ function ToastContainer({ toasts }) {
 
 /* ── ROOT APP ───────────────────────────────────────────────── */
 function App() {
-  const [session, setSession] = useState(undefined); // undefined = loading
+  const [session, setSession] = useState(undefined);
   const [profile, setProfile] = useState(null);
   const [page, setPage] = useState('dashboard');
   const [activeTopic, setActiveTopic] = useState(null);
   const { toasts, show: toast } = useToast();
+  const [theme, setTheme] = useState(() => localStorage.getItem('pg-theme') || 'vscode');
+
+  useEffect(() => {
+    const el = document.documentElement;
+    if (theme === 'vscode') el.removeAttribute('data-theme');
+    else el.setAttribute('data-theme', theme);
+    localStorage.setItem('pg-theme', theme);
+  }, [theme]);
 
   // Auth listener
   useEffect(() => {
@@ -1469,7 +1622,7 @@ function App() {
 
   return (
     <AppCtx.Provider value={{ session, profile, toast }}>
-      <TopNav user={session.user} profile={profile} route={routeLabel} topicId={activeTopic}/>
+      <TopNav user={session.user} profile={profile} route={routeLabel} topicId={activeTopic} theme={theme} setTheme={setTheme}/>
       <div className="app-shell">
         <Sidebar profile={profile} page={page} setPage={setPage}/>
         {renderPage()}
