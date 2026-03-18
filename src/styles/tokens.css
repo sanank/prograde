@@ -602,6 +602,8 @@ code, .mono { font-family: var(--font-code); }
 .btn-ghost:hover { background: var(--bg-4); color: var(--text-0); }
 .btn-danger { background: var(--error-dim); color: var(--error); border: 1px solid rgba(244,71,71,.3); }
 .btn-danger:hover { background: rgba(244,71,71,.2); }
+.btn-green { background: var(--success); color: var(--text-inv); border: none; }
+.btn-green:hover { opacity: .88; }
 .btn-sm { padding: 5px 10px; font-size: 12px; }
 .btn:disabled { opacity: .4; cursor: not-allowed; }
 

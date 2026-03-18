@@ -34,10 +34,10 @@ function App() {
       <div className="loading-screen" style={{ flex: 1 }}><div className="spinner" /></div>
     );
     switch (page) {
-      case ROUTES.DASHBOARD:       return <DashboardPage       user={session.user} profile={profile} setPage={setPage} />;
+      case ROUTES.DASHBOARD:       return <DashboardPage       user={session.user} profile={profile} setPage={setPage} setActiveTopic={setActiveTopic} />;
       case ROUTES.PHASES:          return <PhasesPage          user={session.user} profile={profile} setPage={setPage} setActiveTopic={setActiveTopic} />;
       case ROUTES.SESSIONS:        return <SessionsPage        user={session.user} />;
-      case ROUTES.TOPIC:           return <TopicPage           topicId={activeTopic} setPage={setPage} />;
+      case ROUTES.TOPIC:           return <TopicPage           topicId={activeTopic} setPage={setPage} user={session.user} />;
       case ROUTES.ADMIN:           return <AdminHomePage       setPage={setPage} />;
       case ROUTES.ADMIN_COURSES:   return <AdminCoursesPage    user={session.user} toast={toast} />;
       case ROUTES.ADMIN_USERS:     return <AdminUsersPage      toast={toast} />;
