@@ -1,15 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Prograde</title>
-<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&family=DM+Mono:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-<style>
 /* ── PROGRADE DESIGN TOKENS ─────────────────────────────────── */
 
 /* ══ DEFAULT: VS Code Dark (IDE) ══════════════════════════════ */
@@ -775,45 +763,3 @@ code, .mono { font-family: var(--font-code); }
 .toast.success { border-left: 3px solid var(--success); }
 .toast.error   { border-left: 3px solid var(--error); }
 .toast.info    { border-left: 3px solid var(--info); }
-</style>
-</head>
-<body>
-<div id="root"></div>
-
-<!-- Config: Supabase keys inlined for GitHub Pages -->
-<script>
-window.PROGRADE_CONFIG = {
-  SUPABASE_URL:      "https://docfqjzyzjriugpubzkp.supabase.co",
-  SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRvY2Zxanp5empyaXVncHViemtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NTU3MTEsImV4cCI6MjA4OTMzMTcxMX0.vP2E4EPBrh3v_vYuV7JetmZmxQg2SJ-s3p474lmsRZI",
-  ANTHROPIC_API_KEY: "",
-};
-const _t = localStorage.getItem('pg-theme') || 'vscode';
-if (_t !== 'vscode') document.documentElement.setAttribute('data-theme', _t);
-</script>
-
-<!-- Lib -->
-<script type="text/babel" src="src/lib/supabase.js"></script>
-<script type="text/babel" src="src/lib/constants.js"></script>
-
-<!-- Hooks -->
-<script type="text/babel" src="src/hooks/useToast.js"></script>
-<script type="text/babel" src="src/hooks/useAuth.js"></script>
-<script type="text/babel" src="src/hooks/usePunchClock.js"></script>
-
-<!-- Components -->
-<script type="text/babel" src="src/components/Toast.jsx"></script>
-<script type="text/babel" src="src/components/TopNav.jsx"></script>
-<script type="text/babel" src="src/components/Sidebar.jsx"></script>
-
-<!-- Pages -->
-<script type="text/babel" src="src/pages/Auth.jsx"></script>
-<script type="text/babel" src="src/pages/Dashboard.jsx"></script>
-<script type="text/babel" src="src/pages/Phases.jsx"></script>
-<script type="text/babel" src="src/pages/Topic.jsx"></script>
-<script type="text/babel" src="src/pages/Sessions.jsx"></script>
-<script type="text/babel" src="src/pages/admin/Admin.jsx"></script>
-
-<!-- App -->
-<script type="text/babel" src="src/App.jsx"></script>
-</body>
-</html>
